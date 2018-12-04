@@ -1,0 +1,174 @@
+install.packages("ggplot2")
+library("ggplot2")
+
+data(diamonds)
+summary(diamonds)
+describe(diamonds)
+#length(diamonds$carat)
+
+
+error=c()
+test_error = c()
+sampsize = c(20, 100, 500, 800, 1000)
+for (n in sampsize){
+set.seed(10)
+rand = sample(1:nrow(diamonds),n)
+randt = sample(1:nrow(diamonds),7000)
+#rand
+train = diamonds[rand, c("carat","price")]
+test = diamonds[randt, c("carat", "price")]
+
+#train
+#test
+#view(diamonds)
+
+# polynomial regression for order 7
+a <- lm(price ~ carat + I(carat^2) + I(carat^3) + I(carat^4) + I(carat^5) + I(carat^6) + I(carat^7), train)
+a
+
+#plotting model
+fname=paste("Graph of Sample Size ",paste(n,".jpg"))
+jpeg(fname)
+plot(train$carat,train$price, pch=19, cex=0.5, main = paste("Diamond Price/Carat for sample size ", n), sub = "Degree = 7", xlab = "Carat", ylab = "Price")
+lines(sort(train$carat), fitted(a)[order(train$carat)], col='blue', type='l',pch=20)
+dev.off()
+
+
+#accuracy
+sum(a$residuals^2)
+pred = predict(a, newdata=test)
+error = sum((pred-test$price)^2)
+test_error = append(test_error, error)
+test_error
+#error
+
+#saving the plots
+#getwd()
+#setwd("C:\\Users\\chira\\Desktop\\R plots")
+}
+
+#?plot
+
+#2.____________________________________________________________________________________________________________________________________________________________________________________________
+
+#plotting test error vs sample size, n
+fname=paste("Graph of Test Error vs Sample Size",paste(".jpg"))
+jpeg(fname)
+plot(sampsize, test_error, pch=20, cex=0.5, main = paste("Graph of Test Error vs Sample Size"), sub = "Degree = 7", xlab = "Sample Size", ylab = "Test Error")
+lines(sampsize, test_error, col='blue', type='l',pch=19)
+dev.off()
+
+#?lines
+
+#3.________________________________________________________________________________________________________________________________________________________________________________________________
+
+#dividing dataframe by 4 and 1st quartile with sample size n= 20 and 100 for polynomial regression for order 1.
+
+test_error20 = c()
+test_error100 = c()
+set.seed(10)
+sampsize = c(10000)
+for (n in sampsize){
+#quartile = First Quartile
+rand = sample(1:nrow(diamonds)/4,n)
+randt = sample(1:nrow(diamonds),500)
+train = diamonds[rand, c("carat","price")]
+test = diamonds[randt, c("carat", "price")]
+
+a <- lm(price ~ carat, train)
+b <- lm(price ~ carat + I(carat^2), train)
+c <- lm(price ~ carat + I(carat^2) + I(carat^3)+ I(carat^4)+ I(carat^5)+ I(carat^6)+ I(carat^7), train)
+d <- lm(price ~ carat + I(carat^2) + I(carat^3)+ I(carat^4)+ I(carat^5)+ I(carat^6)+ I(carat^7)+ I(carat^8), train)
+e <- lm(price ~ carat + I(carat^2) + I(carat^3)+ I(carat^4)+ I(carat^5)+ I(carat^6)+ I(carat^7)+ I(carat^8)+ I(carat^9), train)
+f <- lm(price ~ carat + I(carat^2) + I(carat^3)+ I(carat^4)+ I(carat^5)+ I(carat^6)+ I(carat^7)+ I(carat^8)+ I(carat^9)+ I(carat^10), train)
+
+#accuracy
+order = list(a,b,c,d,e,f)
+for (i in order){
+sum(i$residuals^2)
+pred = predict(i, newdata=test)
+error1 = sum((pred-test$price)^2)
+if(n == 20){
+  test_error20 = append(test_error20, error1)
+}
+else{test_error100 = append(test_error100, error1)
+}
+}
+}
+t20 <- test_error20
+t100 <- test_error100
+t20
+t100
+
+rmse20 = sqrt(test_error20/6)
+rmse100 = sqrt(test_error100/6)
+model = c(1,2,7,8,9,10)
+#getwd()
+
+
+fname=paste("Graph of Test RSS vs Model Complexity for Sample size 20",paste(".jpg"))
+jpeg(fname)
+plot(model, test_error20, pch=20, cex=0.5, main = paste("Test RSS vs Model Complexity"), sub="Sample size 20",xlab = "Model Complexity", ylab = "Test RSS")
+lines(model, test_error20, col='Black', type='l',pch=19)
+
+
+?lines
+
+#plotting all regression lines in 1 graph
+fname=paste("1st Quartile_Sample Size 100_all orders of polynomial ",paste(".jpg"))
+jpeg(fname)
+plot(train$carat,train$price, pch=19, cex=0.5, main = paste("Diamond Price/Carat for sample size 100"), xlab = "Carat", ylab = "Price")
+lines(sort(train$carat), fitted(a)[order(train$carat)], col='Blue', type='l',pch=19)
+lines(sort(train$carat), fitted(b)[order(train$carat)], col='green', type='l',pch=19)
+lines(sort(train$carat), fitted(c)[order(train$carat)], col='yellow', type='l',pch=19)
+lines(sort(train$carat), fitted(d)[order(train$carat)], col='red', type='l',pch=19)
+lines(sort(train$carat), fitted(e)[order(train$carat)], col='brown', type='l',pch=19)
+lines(sort(train$carat), fitted(f)[order(train$carat)], col='orange', type='l',pch=19)
+legend("bottomright",legend = c("Polynomial Order 1","Polynomial Order 2", "Polynomial Order 7", "Polynomial Order 8","Polynomial Order 9","Polynomial Order 10"), lwd=c(3,3,3,3), col=c("blue","green","yellow", "red","brown","orange"), pch=c(19,19,19,19), cex = 0.5, y.intersp=1.5)
+dev.off()
+
+
+#+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+#train error
+
+test_error20 = c()
+test_error100 = c()
+set.seed(10)
+sampsize = c(10000)
+for (n in sampsize){
+  #quartile = First Quartile
+  rand = sample(1:nrow(diamonds)/4,n)
+  randt = sample(1:nrow(diamonds),500)
+  test = diamonds[rand, c("carat","price")]
+  train = diamonds[randt, c("carat", "price")]
+  
+  a <- lm(price ~ carat, train)
+  b <- lm(price ~ carat + I(carat^2), train)
+  c <- lm(price ~ carat + I(carat^2) + I(carat^3)+ I(carat^4)+ I(carat^5)+ I(carat^6)+ I(carat^7), train)
+  d <- lm(price ~ carat + I(carat^2) + I(carat^3)+ I(carat^4)+ I(carat^5)+ I(carat^6)+ I(carat^7)+ I(carat^8), train)
+  e <- lm(price ~ carat + I(carat^2) + I(carat^3)+ I(carat^4)+ I(carat^5)+ I(carat^6)+ I(carat^7)+ I(carat^8)+ I(carat^9), train)
+  f <- lm(price ~ carat + I(carat^2) + I(carat^3)+ I(carat^4)+ I(carat^5)+ I(carat^6)+ I(carat^7)+ I(carat^8)+ I(carat^9)+ I(carat^10), train)
+  
+  #accuracy
+  order = list(a,b,c,d,e,f)
+  for (i in order){
+    sum(i$residuals^2)
+    pred = predict(i, newdata=test)
+    error1 = sum((pred-test$price)^2)
+    if(n == 20){
+      test_error20 = append(test_error20, error1)
+    }
+    else{test_error100 = append(test_error100, error1)
+    }
+  }
+}
+
+
+test_error <- t100
+train_error <- test_error100
+
+test_error
+train_error
+plot(test_error,train_error)
+lines(test_error, col='yellow', type='l',pch=19)
+lines(train_error, col='black', type='l',pch=19)
